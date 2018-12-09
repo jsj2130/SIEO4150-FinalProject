@@ -3,6 +3,7 @@
 ##### Due Date: December 10, 2018
 
 require('quantmod')
+require('randtests')
 
 ############################################################
 # Source Stock Data for Education Stocks                   #
@@ -60,30 +61,56 @@ one_stock_analysis <- function(single_ticker, start_date) {
 	# For a single stock, get data
 	getSymbols(single_ticker, src = 'yahoo', from = start_date, env = single_stock_data)
 
+	# Get the Log Returns for the stock
+	if (length(nrow(single_stock_data[[single_ticker]])) != 0) {
+	nrows <- nrow(single_stock_data[[single_ticker]])
+	single_stock_data[[single_ticker]]$logreturns <- 0
+	single_stock = coredata(single_stock_data[[single_ticker]])
+		for(i in 2:nrows) {
+		  single_stock_data[[single_ticker]]$logreturns[i] <- log(single_stock[,4][i]) - log(single_stock[,4][i-1])
+		}
+	}
+
 	# Display Histogram
 	print("Displaying Histogram...")
 	chartSeries(single_stock_data[[single_ticker]], name = single_ticker)
-	Sys.sleep(5)
+	Sys.sleep(3)
 
 	# Display Normal Probability Plot
+	print("Displaying Normal Probability Plot...")
 	single_stock = coredata(single_stock_data[[single_ticker]])
-	qqnorm(single_stock[,4])
-    qqline(single_stock[,4])	
+	qqnorm(single_stock[,7])
+    qqline(single_stock[,7])
+    Sys.sleep(3)
 
-	# Create a Confidence Interval for Means
+    # Test for Randomness (Runs Test)
+    print("Performing Runs Test for Randomness...")
+    randomness_results <- runs.test(single_stock[,7])
+	str = sprintf("P-Value: %f",randomness_results[2]$p.value)
+	print(str)
+	Sys.sleep(3)
+
+	# Create a 95 Percent Confidence Interval for Means
+	sample_means <- mean(single_stock[,7], na.rm = TRUE)
+	str = sprintf("Sample Means: %f",sample_means)
+	print(str)
+
+	sample_stddev <- sd(single_stock[,7], na.rm = TRUE)
+	str = sprintf("Sample Std Dev: %f",sample_stddev)
+	print(str)
+
+	sample_size <- nrow(single_stock_data[[single_ticker]])
+	error <- qt(0.975, df = sample_size - 1) * sample_stddev / sqrt(sample_size)
+	str = sprintf("Sample Error: %f",error)
+	print(str)
+
+	ci_min <- sample_means - error
+	ci_max <- sample_means + error
+	str = sprintf("Confidence Interval: (%f,%f)",ci_min,ci_max)
+	print(str)
 
 	# Create a Confidence Interval for Variances
 
-	# Get the Log Returns for the stock
-	  if (length(nrow(single_stock_data[[single_ticker]])) != 0) {
-	    nrows <- nrow(single_stock_data[[single_ticker]])
-	    single_stock_data[[single_ticker]]$logreturns <- 0
-	    single_stock = coredata(single_stock_data[[single_ticker]])
-	    for(i in 2:nrows) {
-	      single_stock_data[[single_ticker]]$logreturns[i] <- log(single_stock[,4][i]) - log(single_stock[,4][i-1])
-	    }
-	  }
-	}
 }
 
 ############################################################
@@ -140,7 +167,6 @@ two_stock_analysis <- function(two_tickers, start_date) {
 }
 
 # User Input for type of analysis to run
-interactive()==TRUE
 print("Please choose an option: 1) Single-stock Analysis 2) Two-stock Analysis 3) Pre-configured Educational Analysis")
 user.option <- readline()
 
