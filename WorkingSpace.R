@@ -135,15 +135,27 @@ two_stock_analysis <- function(two_tickers, start_date, end_date) {
 	# Get the Log Returns for each stock
 	for(n in names(two_stock_data)) {
 	  if (n != 'NULL' && length(nrow(two_stock_data[[n]])) != 0) {
-	    nrows <- nrow(single_stock_data[[n]])
+	    nrows <- nrow(two_stock_data[[n]])
 	    two_stock_data[[n]]$logreturns <- 0
 	    single_stock = coredata(two_stock_data[[n]])
 	    for(i in 2:nrows) {
 	      two_stock_data[[n]]$logreturns[i] <- log(single_stock[,4][i]) - log(single_stock[,4][i-1])
 	    }
-	    print(two_stock_data[[n]]$logreturns)
 	  }
 	}
+
+	print("Attempting T Test...")
+	control_stock = coredata(two_stock_data[[two_tickers[1]]])
+	batch_one <- control_stock[,7]
+
+	test_stock = coredata(two_stock_data[[two_tickers[2]]])
+	batch_two <- test_stock[,7]
+
+	twostock_tresults <- t.test(batch_one, batch_two, var.equal=FALSE)
+	print(twostock_tresults)
+
+	tslm_logreturns <- lm(batch_one ~ batch_two)
+	print(summary(tslm_logreturns))
 }
 
 edstock_analysis <- function() {
@@ -184,13 +196,17 @@ if (user.option == 1) {
 	user.two_tickers <- readline(prompt="Please enter two stock symbols, comma-separated: ")
 	user.start_date <- readline(prompt="Please enter the start date you'd like (Format: YYYY-MM-DD): ")
 
-	tryCatch({as.Date(user.start_date)
+	tryCatch({
+			user.start_date <- as.Date(user.start_date)
 		}, error = function(err) {
 			stop("Invalid start date: Input must be valid date. Exiting")
 		}, finally = {
 			if (class(user.two_tickers) == "character" && class(user.start_date) == "Date") {
+				stock_list <- strsplit(user.two_tickers, ",")[[1]]
+				stock_list <- gsub(" ", "", stock_list, fixed = TRUE)
+
 				end_date = Sys.Date()
-				two_stock_analysis(user.two_tickers, user.start_date, end_date)
+				two_stock_analysis(stock_list, user.start_date, end_date)
 			} else {
 				stop("Invalid stock symbols: Input must be two valid, comma-separated stock symbols. Exiting.")
 			}

@@ -12,10 +12,19 @@ Please choose an option:
 ```
 
 ## Single-Stock Analysis
-In this function, a user is able to enter a single stock symbol as well as a lookback (start) date and return the histogram for the stock, the normal probability plot to test for normality, the confidence interval of the mean and the variance and the log returns and regression of the log returns of the stock of the lookback window.
+In this function, a user is able to enter a single stock symbol as well as a lookback (start) date and return the histogram for the stock, the normal probability plot to test for normality, the confidence interval of the mean and the variance, the log returns and regression of the log returns of the stock within the lookback window and the residuals.
 
 ## Two-Stock Analysis
-
+In this function, a user is able to conduct the t-test to determine population mean equivalence among two distinct stocks. I also run linear regression to test whether there is a significant difference in the log returns provided by the user.
 
 ## How to Run
+1. Open RStudio IDE, open the WorkingSpace.R file within the SIEO4150-FinalProject folder.
+2. Ensure the following packages are loaded into the RStudio environment:
+	- arms
+	- xts
+	- zoo
+	- quantmod
+	- randtests
+3. Source the script into the console environment within RStudio. 
+4. Follow the prompts from the script.
 
